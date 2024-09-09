@@ -168,3 +168,10 @@ cython_debug/
 *.sqlite3
 db.sqlite3
 db2.sqlite3
+
+# Ignore local Memcached socket or PID files
+/home/syed/edu/educa/memcached-1.6.29
+# Ignore local Memcached installation directories
+memcached-1.6.29/
+
+memcached-*.tar.gz

@@ -154,8 +154,8 @@ class ContentDeleteView(View):
             module = content.module
             content.item.delete()
             content.delete()
-            print("Content Deleted Succesfully")
-            return redirect('module_content_list', self.module.id)
+            # print("Content Deleted Succesfully")
+            return redirect('module_content_list', module.id)
     
         except Exception as e:
             return HttpResponse(f"Error: {str(e)}")

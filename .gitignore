@@ -175,3 +175,10 @@ db2.sqlite3
 memcached-1.6.29/
 
 memcached-*.tar.gz
+
+# Ignore database dump files
+dump.rdb
+
+# Ignore Python bytecode files
+*.pyc
+__pycache__/

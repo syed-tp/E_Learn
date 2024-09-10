@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 
 # Create your views here.
@@ -30,6 +31,8 @@ from django.views.generic.detail import DetailView
 from students.forms import CourseEnrollForm
 
 from django.core.cache import cache
+
+
 
 class ManageCourseListView(ListView):
     model = Course
@@ -146,11 +149,16 @@ class ContentCreateUpdateView(TemplateResponseMixin, View):
     
 class ContentDeleteView(View):
     def post(self, request, id):
-        content = get_object_or_404(Content, id=id, module__course__owner=request.user)
-        module = content.module
-        content.item.delete()
-        content.delete()
-        return redirect('module_content_list', module.id)
+        try:
+            content = get_object_or_404(Content, id=id, module__course__owner=request.user)
+            module = content.module
+            content.item.delete()
+            content.delete()
+            print("Content Deleted Succesfully")
+            return redirect('module_content_list', self.module.id)
+    
+        except Exception as e:
+            return HttpResponse(f"Error: {str(e)}")
     
 class ModuleContentListView(TemplateResponseMixin, View):
     template_name = 'courses/manage/module/content_list.html'

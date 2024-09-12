@@ -98,7 +98,7 @@
         var message = data.message;
         var messageId = data.id;
 
-        console.log(messageId, message)
+       
 
         var dateOptions = {hour: 'numeric', minute: 'numeric', hour12: true};
         var datetime = new Date(data['datetime']).toLocaleString('en', dateOptions);
@@ -106,14 +106,14 @@
         var isMe = data.user === '{{ request.user }}';
         var source = isMe ? 'me' : 'other';
         var name = isMe ? 'Me' : data.user;
-        var id = data.id;   
+        var id = data.id;
 
 
         var $chat = $('#chat');
         $chat.append('<div class="message ' + source + '" data-id="' + data.id + '">' + 
             '<button class="delete-button" data-id="' + data.id + '">🗑️</button>' +
             '<strong>' + name + '</strong> ' + 
-            '<span class="date">' + datetime + id +'</span><br>' + 
+            '<span class="date">' + datetime +'</span><br>' + 
             message + 
         '</div>');
         $chat.scrollTop($chat[0].scrollHeight);
@@ -152,7 +152,8 @@
         var messageId = $(this).data('id');
         var message = $(this).data('id');
         
-        console.log("Deleting message with ID:", messageId, me);
+        console.log("Deleting message with ID:", messageId,);
+
         chatSocket.send(JSON.stringify({
             'action': 'delete',
             'message_id': messageId

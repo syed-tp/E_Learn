@@ -29,6 +29,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'message': message['content'],
                 'user': message['user__username'],
                 'datetime': message['timestamp'].isoformat(),
+                'id':message['id'],
+                
         }))
     
     async def disconnect(self, close_code):

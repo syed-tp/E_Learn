@@ -3,13 +3,89 @@
 {% block title %}Chat room for "{{ course.title }}"{% endblock %}
 
 {% block content %}
+
+<style>
+.btn-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+#chat-message-submit {
+    width: 90%!important;
+    margin-right:5px !important;
+    background-color:#8bcf87;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 16px;
+    text-transform: none;
+    border: none;
+    padding: 10px;
+    transition: 0.2s ease;
+}
+
+#chat-message-submit:hover{
+    background-color:#3fad37;
+    font-weight: bold;
+}
+
+#delete-message{
+    width: 10% !important;
+    margin-left:5px !important;
+    background-color: #d96b6b;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 16px;
+    text-transform: none;
+    border: none;
+    padding: 10px;
+    transition:0.2s ease;
+}
+
+#delete-message:hover{
+    background-color:red;
+    font-weight: bold;
+}
+
+.message {
+    position: relative; /* Allows absolute positioning of the delete button */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+}
+
+.delete-button {
+    position: absolute;
+    top: 10px; /* Adjust as needed */
+    left: 10px; /* Position at the start of the message */
+    background: transparent;
+    border: none;
+    color: #d96b6b;
+    font-size: 16px;
+    cursor: pointer;
+    display: none; /* Hidden by default */
+}
+
+.message:hover .delete-button {
+    display: block; /* Show when hovering over the message */
+}
+
+.message:hover {
+    background-color: #e6e6e6; /* Optional: Highlight message on hover */
+}
+
+</style>
     <div id="chat">
+        
     </div>
     
     <div id="chat-input">
         <input id="chat-message-input" type="text">
         <input id="chat-message-submit" type="submit" value="Send">
     </div>
+        
 {% endblock %}
 
 {% block domready %}
@@ -20,6 +96,9 @@
 
         var data = JSON.parse(e.data);
         var message = data.message;
+        var messageId = data.id;
+
+        console.log(messageId, message)
 
         var dateOptions = {hour: 'numeric', minute: 'numeric', hour12: true};
         var datetime = new Date(data['datetime']).toLocaleString('en', dateOptions);
@@ -27,10 +106,16 @@
         var isMe = data.user === '{{ request.user }}';
         var source = isMe ? 'me' : 'other';
         var name = isMe ? 'Me' : data.user;
+        var id = data.id;   
 
 
         var $chat = $('#chat');
-        $chat.append('<div class="message ' + source + '">' + '<strong>' + name + '</strong> ' + '<span class="date">' + datetime + '</span><br>' + message +'</div>');
+        $chat.append('<div class="message ' + source + '" data-id="' + data.id + '">' + 
+            '<button class="delete-button" data-id="' + data.id + '">🗑️</button>' +
+            '<strong>' + name + '</strong> ' + 
+            '<span class="date">' + datetime + id +'</span><br>' + 
+            message + 
+        '</div>');
         $chat.scrollTop($chat[0].scrollHeight);
     };
     chatSocket.onclose = function(e) {
@@ -43,7 +128,9 @@
         var message = $input.val();
         if(message) {
             // send message in JSON format
-            chatSocket.send(JSON.stringify({'message': message}));
+            chatSocket.send(JSON.stringify({
+                'action': 'send',
+                'message': message}));
 
             // clear input
             $input.val('');
@@ -55,9 +142,20 @@
 
     $input.focus();
     $input.keyup(function(e) {
-    if (e.which === 13) {
-        // submit with enter / return key
-        $submit.click();
- }
-});
+        if (e.which === 13) {
+            // submit with enter / return key
+            $submit.click();
+        }
+    });
+
+    $(document).on('click', '.delete-button', function() {
+        var messageId = $(this).data('id');
+        var message = $(this).data('id');
+        
+        console.log("Deleting message with ID:", messageId, me);
+        chatSocket.send(JSON.stringify({
+            'action': 'delete',
+            'message_id': messageId
+        }));
+    });
 {% endblock %}

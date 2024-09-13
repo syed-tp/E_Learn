@@ -59,23 +59,40 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_group_name,
             {
+                   
                 'type': 'chat_message',
                 'message': message,
-                'user':self.user.username,
+                'user':self.user.name,
                 'datetime': now.isoformat(),
-                'message_id': message_instance.id,
+                'id': message_instance.id,
+                'action':'send', 
+                
             }
         )
 
     async def handle_delete(self, message_id):
+        print(message_id)
         
         try:
+            
             message_id = int(message_id)  # Ensure message_id is an integer
             await self.soft_delete_messages(self.user, message_id)
+        
+
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'user':self.user.username,
+                    'message':'This message was deleted.',
+                    'datetime': (timezone.now()).isoformat(),
+                    'type': 'chat_message',
+                    'action': 'delete',
+                    'id': message_id,
+                }
+            )
+            print(f"deleted")
         except ValueError:
-            # Handle the case where message_id is not a valid integer
-            print(ValueError)
-            print(message_id)
+            print(f"Invalid message_id: {message_id}")
 
 
     # receive message from room group

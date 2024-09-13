@@ -1,162 +1,203 @@
-{% extends "base.html" %}
+    {% extends "base.html" %}
 
-{% block title %}Chat room for "{{ course.title }}"{% endblock %}
+    {% block title %}Chat room for "{{ course.title }}"{% endblock %}
 
-{% block content %}
+    {% block content %}
 
-<style>
-.btn-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-}
+    <style>
+    .btn-container {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
 
-#chat-message-submit {
-    width: 90%!important;
-    margin-right:5px !important;
-    background-color:#8bcf87;
-    color: #fff;
-    border-radius: 5px;
-    font-size: 16px;
-    text-transform: none;
-    border: none;
-    padding: 10px;
-    transition: 0.2s ease;
-}
+    #chat-message-submit {
+        width: 90%!important;
+        margin-right:5px !important;
+        background-color:#8bcf87;
+        color: #fff;
+        border-radius: 5px;
+        font-size: 16px;
+        text-transform: none;
+        border: none;
+        padding: 10px;
+        transition: 0.2s ease;
+    }
 
-#chat-message-submit:hover{
-    background-color:#3fad37;
-    font-weight: bold;
-}
+    #chat-message-submit:hover{
+        background-color:#3fad37;
+        font-weight: bold;
+    }
 
-#delete-message{
-    width: 10% !important;
-    margin-left:5px !important;
-    background-color: #d96b6b;
-    color: #fff;
-    border-radius: 5px;
-    font-size: 16px;
-    text-transform: none;
-    border: none;
-    padding: 10px;
-    transition:0.2s ease;
-}
+    #delete-message{
+        width: 10% !important;
+        margin-left:5px !important;
+        background-color: #d96b6b;
+        color: #fff;
+        border-radius: 5px;
+        font-size: 16px;
+        text-transform: none;
+        border: none;
+        padding: 10px;
+        transition:0.2s ease;
+    }
 
-#delete-message:hover{
-    background-color:red;
-    font-weight: bold;
-}
+    #delete-message:hover{
+        background-color:red;
+        font-weight: bold;
+    }
 
-.message {
-    position: relative; /* Allows absolute positioning of the delete button */
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    background: #f9f9f9;
-}
+    .message {
+        position: relative; /* Allows absolute positioning of the delete button */
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        background: #f9f9f9;
+    }
 
-.delete-button {
-    position: absolute;
-    top: 10px; /* Adjust as needed */
-    left: 10px; /* Position at the start of the message */
-    background: transparent;
-    border: none;
-    color: #d96b6b;
-    font-size: 16px;
-    cursor: pointer;
-    display: none; /* Hidden by default */
-}
+    .delete-button {
+        position: absolute;
+        top: 10px; /* Adjust as needed */
+        left: 10px; /* Position at the start of the message */
+        background: transparent;
+        border: none;
+        color: #d96b6b;
+        font-size: 16px;
+        cursor: pointer;
+        display: none; /* Hidden by default */
+    }
 
-.message:hover .delete-button {
-    display: block; /* Show when hovering over the message */
-}
+    .message:hover .delete-button {
+        display: block; /* Show when hovering over the message */
+    }
 
-.message:hover {
-    background-color: #e6e6e6; /* Optional: Highlight message on hover */
-}
+    .message:hover {
+        background-color: #e6e6e6; /* Optional: Highlight message on hover */
+    }
 
-</style>
-    <div id="chat">
+    /* Toast notification styling */
+    .toast {
+        visibility: hidden;
+        max-width: 250px;
+        margin: 0 auto;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 5px;
+        padding: 10px;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%);
+        font-size: 16px;
+        transition: visibility 0s, opacity 0.5s ease-in-out;
+        opacity: 0;
+    }
+
+    .toast.show {
+        visibility: visible;
+        opacity: 1;
+    }
+
+
+    </style>
+
+        <div id="toast" class="toast">Message deleted successfully!</div>
+        <div id="chat">
+            
+        </div>
         
-    </div>
-    
-    <div id="chat-input">
-        <input id="chat-message-input" type="text">
-        <input id="chat-message-submit" type="submit" value="Send">
-    </div>
+        <div id="chat-input">
+            <input id="chat-message-input" type="text">
+            <input id="chat-message-submit" type="submit" value="Send">
+        </div>
+            
+    {% endblock %}
+
+    {% block domready %}
+
+        function showToast(message) {
+            var toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.className = "toast show";
         
-{% endblock %}
+            // Hide the toast after 3 seconds
+            setTimeout(function() {
+                toast.className = toast.className.replace("show", "");
+            }, 3000);
+        }
 
-{% block domready %}
-    var url = 'ws://' + window.location.host + '/ws/chat/room/' + '{{ course.id }}/';
-    var chatSocket = new WebSocket(url);
+        var url = 'ws://' + window.location.host + '/ws/chat/room/' + '{{ course.id }}/';
+        var chatSocket = new WebSocket(url);
 
-    chatSocket.onmessage = function(e) {
+        chatSocket.onmessage = function(e) {
 
-        var data = JSON.parse(e.data);
-        var message = data.message;
-        var messageId = data.id;
+            var data = JSON.parse(e.data);
+            var action = data.action;
+            var message = data.message;
+            var messageId = data.id;
 
-       
+            console.log(data)
 
-        var dateOptions = {hour: 'numeric', minute: 'numeric', hour12: true};
-        var datetime = new Date(data['datetime']).toLocaleString('en', dateOptions);
+            var dateOptions = {hour: 'numeric', minute: 'numeric', hour12: true};
+            var datetime = new Date(data['datetime']).toLocaleString('en', dateOptions);
 
-        var isMe = data.user === '{{ request.user }}';
-        var source = isMe ? 'me' : 'other';
-        var name = isMe ? 'Me' : data.user;
-        var id = data.id;
+            var isMe = data.user === '{{ request.user }}';
+            var source = isMe ? 'me' : 'other';
+            var name = isMe ? 'Me' : data.user;
 
+            var $chat = $('#chat');
+            $chat.append('<div class="message ' + source + '" data-id="' + data.id + '">' + 
+                '<button class="delete-button" data-id="' + data.id + '">🗑️</button>' +
+                '<strong>' + name + '</strong> ' +
+                '<span class="date">' + datetime +'</span><br>' + 
+                message + 
+            '</div>');
+            $chat.scrollTop($chat[0].scrollHeight);
 
-        var $chat = $('#chat');
-        $chat.append('<div class="message ' + source + '" data-id="' + data.id + '">' + 
-            '<button class="delete-button" data-id="' + data.id + '">🗑️</button>' +
-            '<strong>' + name + '</strong> ' + 
-            '<span class="date">' + datetime +'</span><br>' + 
-            message + 
-        '</div>');
-        $chat.scrollTop($chat[0].scrollHeight);
-    };
-    chatSocket.onclose = function(e) {
-        console.error('Chat socket closed unexpectedly');
-    };
+        };
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
 
-    var $input = $('#chat-message-input');
-    var $submit = $('#chat-message-submit');
-    $submit.click(function() {
-        var message = $input.val();
-        if(message) {
-            // send message in JSON format
+        var $input = $('#chat-message-input');
+        var $submit = $('#chat-message-submit');
+        $submit.click(function() {
+            var message = $input.val();
+            if(message) {
+                // send message in JSON format
+                chatSocket.send(JSON.stringify({
+                    'action': 'send',
+                    'message': message}));
+
+                // clear input
+                $input.val('');
+
+                // return focus
+                $input.focus();
+            }
+        });
+
+        $input.focus();
+        $input.keyup(function(e) {
+            if (e.which === 13) {
+                // submit with enter / return key
+                $submit.click();
+            }
+        });
+
+        $(document).on('click', '.delete-button', function() {
+            var messageId = $(this).data('id');
             chatSocket.send(JSON.stringify({
-                'action': 'send',
-                'message': message}));
-
-            // clear input
-            $input.val('');
-
-            // return focus
-            $input.focus();
-        }
-    });
-
-    $input.focus();
-    $input.keyup(function(e) {
-        if (e.which === 13) {
-            // submit with enter / return key
-            $submit.click();
-        }
-    });
-
-    $(document).on('click', '.delete-button', function() {
-        var messageId = $(this).data('id');
-        var message = $(this).data('id');
         
-        console.log("Deleting message with ID:", messageId,);
+                'action': 'delete',
+                'message_id': messageId
+            }));
 
-        chatSocket.send(JSON.stringify({
-            'action': 'delete',
-            'message_id': messageId
-        }));
-    });
-{% endblock %}
+            $('.message[data-id="' + messageId + '"]').remove();    
+            showToast('Message deleted successfully!');
+            
+        });
+    {% endblock %}

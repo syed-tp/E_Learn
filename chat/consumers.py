@@ -26,6 +26,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         for message in messages:
             await self.send(text_data=json.dumps({
+                'action':'send',
                 'message': message['content'],
                 'user': message['user__username'],
                 'datetime': message['timestamp'].isoformat(),
@@ -54,7 +55,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def handle_new_message(self, message):
         now = timezone.now()
         message_instance= await self.save_message(self.user, message, self.id)
-        # print(f"New message saved with ID: {message_instance.id}")
+        print(f"New message saved with ID: {message_instance.id}")
 
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -62,7 +63,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                    
                 'type': 'chat_message',
                 'message': message,
-                'user':self.user.name,
+                'user':self.user.username,
                 'datetime': now.isoformat(),
                 'id': message_instance.id,
                 'action':'send', 
@@ -71,11 +72,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def handle_delete(self, message_id):
-        print(message_id)
         
         try:
             
             message_id = int(message_id)  # Ensure message_id is an integer
+            message = await database_sync_to_async(Message.objects.get)(id=message_id)
             await self.soft_delete_messages(self.user, message_id)
         
 
@@ -84,13 +85,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'user':self.user.username,
                     'message':'This message was deleted.',
-                    'datetime': (timezone.now()).isoformat(),
+                    'datetime': message.timestamp.isoformat(),
                     'type': 'chat_message',
                     'action': 'delete',
                     'id': message_id,
                 }
             )
-            print(f"deleted")
+            print(f"deleted - { message_id}")
         except ValueError:
             print(f"Invalid message_id: {message_id}")
 
@@ -117,6 +118,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_previous_messages(self):
         # Fetch previous messages for this course
-        return list(Message.objects.filter(course_id=self.id, deleted = False).order_by('timestamp')[:50].values('id', 'user__username', 'content', 'timestamp'))
+        return list(Message.objects.filter(course_id=self.id, deleted = False).order_by('id')[:50].values('id', 'user__username', 'content', 'timestamp'))
     
     

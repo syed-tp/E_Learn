@@ -3,7 +3,6 @@
     {% block title %}Chat room for "{{ course.title }}"{% endblock %}
 
     {% block content %}
-
     <style>
     .btn-container {
         display: flex;
@@ -29,23 +28,6 @@
         font-weight: bold;
     }
 
-    #delete-message{
-        width: 10% !important;
-        margin-left:5px !important;
-        background-color: #d96b6b;
-        color: #fff;
-        border-radius: 5px;
-        font-size: 16px;
-        text-transform: none;
-        border: none;
-        padding: 10px;
-        transition:0.2s ease;
-    }
-
-    #delete-message:hover{
-        background-color:red;
-        font-weight: bold;
-    }
 
     .message {
         position: relative; /* Allows absolute positioning of the delete button */
@@ -59,7 +41,7 @@
     .delete-button {
         position: absolute;
         top: 10px; /* Adjust as needed */
-        left: 10px; /* Position at the start of the message */
+        right:10px; /* Position at the start of the message */
         background: transparent;
         border: none;
         color: #d96b6b;
@@ -68,20 +50,21 @@
         display: none; /* Hidden by default */
     }
 
-    .message:hover .delete-button {
+    .message.me .delete-button {
+        display: none; /* Hidden by default for sender's messages */
+    }
+
+    .message.me:hover .delete-button {
         display: block; /* Show when hovering over the message */
     }
 
-    .message:hover {
-        background-color: #e6e6e6; /* Optional: Highlight message on hover */
-    }
 
     /* Toast notification styling */
     .toast {
         visibility: hidden;
         max-width: 250px;
         margin: 0 auto;
-        background-color: #333;
+        background-color: #FF4C4C;
         color: #fff;
         text-align: center;
         border-radius: 5px;
@@ -89,10 +72,10 @@
         position: fixed;
         z-index: 1;
         left: 50%;
-        bottom: 30px;
+        top: 15%;
         transform: translateX(-50%);
         font-size: 16px;
-        transition: visibility 0s, opacity 0.5s ease-in-out;
+        transition: visibility 0s, opacity 0.2s ease-in-out;
         opacity: 0;
     }
 
@@ -104,10 +87,11 @@
 
     </style>
 
+
+        
         <div id="toast" class="toast">Message deleted successfully!</div>
-        <div id="chat">
-            
-        </div>
+
+        <div id="chat"></div>
         
         <div id="chat-input">
             <input id="chat-message-input" type="text">
@@ -139,7 +123,7 @@
             var message = data.message;
             var messageId = data.id;
 
-            console.log(data)
+            {% comment %} console.log(action) {% endcomment %}
 
             var dateOptions = {hour: 'numeric', minute: 'numeric', hour12: true};
             var datetime = new Date(data['datetime']).toLocaleString('en', dateOptions);
@@ -147,14 +131,21 @@
             var isMe = data.user === '{{ request.user }}';
             var source = isMe ? 'me' : 'other';
             var name = isMe ? 'Me' : data.user;
+            
 
             var $chat = $('#chat');
-            $chat.append('<div class="message ' + source + '" data-id="' + data.id + '">' + 
-                '<button class="delete-button" data-id="' + data.id + '">🗑️</button>' +
-                '<strong>' + name + '</strong> ' +
-                '<span class="date">' + datetime +'</span><br>' + 
-                message + 
-            '</div>');
+            if(action ==='send'){
+                $chat.append('<div class="message ' + source + '" data-id="' + data.id + '">' + 
+                    '<button class="delete-button" data-id="' + data.id + '"><i class="fas fa-trash"></i></button>' +
+                    '<strong>' + name + '</strong> ' +
+                    '<span class="date">' + datetime +'</span><br>' + 
+                    message + '</div>');
+            }
+            if(action ==='delete'){
+                $('.message[data-id="' + messageId + '"]').remove();
+                showToast('Message deleted successfully!');
+            }
+
             $chat.scrollTop($chat[0].scrollHeight);
 
         };
@@ -195,9 +186,5 @@
                 'action': 'delete',
                 'message_id': messageId
             }));
-
-            $('.message[data-id="' + messageId + '"]').remove();    
-            showToast('Message deleted successfully!');
-            
         });
     {% endblock %}

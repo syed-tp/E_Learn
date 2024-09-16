@@ -16,8 +16,12 @@ DATABASES = {
         'PASSWORD': 'Syed@4707',
         'HOST': 'localhost',
         'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c timezone=UTC'
+        }
     }
 }
+ALLOWED_HOSTS = ['educaproject.com', 'www.educaproject.com']
 
 TIME_ZONE = 'UTC'
 USE_TZ = True

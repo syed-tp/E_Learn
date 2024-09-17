@@ -27,3 +27,6 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 SECRET_KEY = 'django-insecure-6i+d8k@reflw7pz#cm9_s4)3waosi5tyo^)xwjk1m(wplweiu1'
+
+SECURE_SSL_REDIRECT = True
+CSRF_COOKIE_SECURE = True

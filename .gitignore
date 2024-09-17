@@ -182,3 +182,5 @@ dump.rdb
 # Ignore Python bytecode files
 *.pyc
 __pycache__/
+
+ssl/educa.key

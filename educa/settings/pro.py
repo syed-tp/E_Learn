@@ -1,6 +1,6 @@
 from .base import *
 
-DEBUG = False
+DEBUG = True
 ADMINS = (
     ('Syed', 'syed@testpress.in'),
 )

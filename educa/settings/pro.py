@@ -19,7 +19,7 @@ DATABASES = {
         }
     }
 }
-ALLOWED_HOSTS = ['educaproject.com', 'www.educaproject.com', ]
+ALLOWED_HOSTS = ['.educaproject.com', ]
 
 TIME_ZONE = 'UTC'
 USE_TZ = True
